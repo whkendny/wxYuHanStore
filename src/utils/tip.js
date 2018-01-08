@@ -38,8 +38,10 @@ export default class Tips {
         showCancel: true,
         success: res => {
           if (res.confirm) {
+            // 点击确认按钮
             resolve(payload);
           } else if (res.cancel) {
+            // 点击按钮
             reject(payload);
           }
         },
@@ -83,7 +85,7 @@ export default class Tips {
   /**
    * 错误框
    */
-
+   
   static error(title, onHide) {
     wx.showToast({
       title: title,

@@ -4,23 +4,26 @@
 @import "./styles/style";
 
 </style>
+
 <script>
 import wepy from 'wepy';
 import 'wepy-async-function'
 import {
-  USER_SPECICAL_INFO,
-  USER_INFO,
-  SYSTEM_INFO,
-  ADDRESS_ID,
+  USER_SPECICAL_INFO,   // 用户code 换取 session_key
+  USER_INFO,            // 用户信息
+  SYSTEM_INFO,          // 系统信息
+  ADDRESS_ID,           // 地址id
   SEL_CLASS_CODE
 } from "./utils/constant";
 import {
-  wxJsCode2Session,
+  wxJsCode2Session,     //  微信的jscode换取sessionKey
   user2session
 } from './api/api';
 
 export default class extends wepy.app {
+  // 对应 app.json的配置
   config = {
+    // 所有页面的列表
     pages: [
       'pages/home',
       'pages/home_detail',
@@ -52,6 +55,7 @@ export default class extends wepy.app {
       'pages/comment',
       'pages/comment_add'
     ],
+    // window 配置
     window: {
       backgroundTextStyle: 'dark',
       navigationBarBackgroundColor: '#FFFFFF',
@@ -89,39 +93,49 @@ export default class extends wepy.app {
       }]
     }
   }
-
+  // globalData全局数据对象
   globalData = {
     userInfo: null,
     appid: 'wx6b121941b200ea50',
     secret: '36a76b0682bd2c3f1541fd012fac66f5',
   }
 
+  // 使用全域拦截器配置API的config、fail、success、complete方法
   constructor() {
     super()
-    this.use('requestfix')
-    this.use('promisify');
-
+    // 使用中间件
+    this.use('requestfix');  // 修复小程序请求并发问题。
+    this.use('promisify');  // 使用wepy.xxx的方式请求小程序原生API都将Promise化。
   }
 
   async onLaunch() {
+    //调用API从本地缓存中获取数据
     let that = this;
+
+    // getStorageSync: 从微信缓存中获取数据
     //用户信息
     let userSpecialInfo = wepy.getStorageSync(USER_SPECICAL_INFO) || {};
-
     // 用户普通信息
     let userInfo = wepy.getStorageSync(USER_INFO) || {};
 
     //如果信息过期
     if ((!userSpecialInfo.openid || (userSpecialInfo.expires_in || Date.now()) < (Date.now() + 600)) && (!userInfo.nickName)) {
-      let res = await wepy.login();
+      let res = await wepy.login();  // 微信登录
+      // console.log('res:--', res) 
+      // 用户code 换取 session_key
       if (res.code) {
-        let d = that.globalData; //这里存储了appid、secret、token串    
+        let d = that.globalData; //这里存储了appid、secret、token串, userInfo等   
+        // console.log('d:--', d) 
+
         //存储userInfo 
         let c = await wepy.getUserInfo();
+        // console.log('c:--', c) 
+        // 将 data 存储在本地缓存中指定的 key 中，会覆盖掉原来该 key 对应的内容，这是一个同步接口。
         wepy.setStorageSync(USER_INFO, c.userInfo);
 
         //存储系统信息 
         let systemInfo = wepy.getSystemInfoSync();
+          // console.log('systemInfo:--', systemInfo) 
         wepy.setStorageSync(SYSTEM_INFO, systemInfo);
 
         wxJsCode2Session({
@@ -150,6 +164,8 @@ export default class extends wepy.app {
           }
         });
 
+        // 见: http://kf.qq.com/faq/1706236NjINj1706236VRZBR.html
+        // 所有对于“api.weixin.qq.com”域名下的接口请求请全部通过后台服务器发起，请勿直接通过小程序的前端代码发起。
         let url = 'https://api.weixin.qq.com/sns/jscode2session?appid=' + d.appid + '&secret=' + d.secret + '&js_code=' + res.code + '&grant_type=authorization_code';
 
         /* let b = await wepy.request({

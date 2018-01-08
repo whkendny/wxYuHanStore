@@ -21,7 +21,7 @@ import api from '../api/api';
 export default class Discover extends wepy.component {
 
     props = {
-        list: []
+        list: []  //通过父组件中接收数据
     }
 
     data = {
