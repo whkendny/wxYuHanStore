@@ -96,8 +96,8 @@ export default class extends wepy.app {
   // globalData全局数据对象
   globalData = {
     userInfo: null,
-    appid: 'wx6b121941b200ea50',
-    secret: '36a76b0682bd2c3f1541fd012fac66f5',
+    appid: '',
+    secret: '',
   }
 
   // 使用全域拦截器配置API的config、fail、success、complete方法
@@ -157,7 +157,7 @@ export default class extends wepy.app {
             }
           } else {
             let obj = {};
-            obj.openid = "oeuj50KHMqsh5kYZYWQJuwmY5yG0";
+            obj.openid = "";
             obj.expires_in = "7200";
             //存储openid 
             wepy.setStorageSync(USER_SPECICAL_INFO, obj);
